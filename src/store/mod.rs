@@ -1,17 +1,13 @@
 mod unique;
 
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use unique::Unique;
-
-pub trait Subscriber {
-    async fn notify(&self, message: String) -> Result<(), Box<dyn Error>>;
-}
 
 pub type Store<S> = Arc<StoreInner<S>>;
 pub struct StoreInner<S>
 where
-    S: Subscriber + std::hash::Hash + Eq + Clone,
+    S: std::hash::Hash + Eq + Clone,
 {
     data: RwLock<String>,
     subscribers: RwLock<Unique<S>>,
@@ -19,13 +15,21 @@ where
 
 impl<S> StoreInner<S>
 where
-    S: Subscriber + std::hash::Hash + Eq + Clone,
+    S: std::hash::Hash + Eq + Clone,
 {
     pub fn new(inital: String) -> Store<S> {
         Arc::new(Self {
             data: RwLock::new(inital),
             subscribers: RwLock::new(Unique::new()),
         })
+    }
+
+    pub async fn get(&self) -> String {
+        self.data.read().await.clone()
+    }
+
+    pub async fn set(&self, value: String) {
+        *self.data.write().await = value;
     }
 
     pub async fn subscribe(&self, s: S) {
@@ -47,18 +51,7 @@ where
         }
     }
 
-    pub async fn broadcast(&self) {
-        let data = self.data.read().await.clone();
-        let mut to_remove = Vec::new();
-        {
-            for s in self.subscribers.read().await.iter() {
-                if let Err(e) = s.notify(data.clone()).await {
-                    eprintln!("Error notifying subscriber: {}", e);
-                    to_remove.push(s.clone());
-                }
-            }
-        }
-
-        self.unsubscribe_many(&to_remove).await;
+    pub async fn subscibers(&self) -> Vec<S> {
+        self.subscribers.read().await.get_all()
     }
 }

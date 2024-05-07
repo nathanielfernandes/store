@@ -48,7 +48,7 @@ where
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &V> {
-        self.all.iter().filter_map(|v| v.as_ref())
+    pub fn get_all(&self) -> Vec<V> {
+        self.all.iter().filter_map(|v| v.clone()).collect()
     }
 }

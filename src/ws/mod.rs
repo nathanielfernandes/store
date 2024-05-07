@@ -4,10 +4,11 @@ pub mod socket;
 use serde::Deserialize;
 
 #[derive(Clone, Debug)]
-pub struct TaggedMessage<T>
+pub struct TaggedMessage<M, T>
 where
-    T: for<'a> Deserialize<'a> + Send + Sync,
+    M: for<'a> Deserialize<'a> + Send + Sync,
 {
-    pub id: socket::SocketId,
-    pub message: T,
+    pub socket_id: socket::SocketId,
+    pub message: M,
+    pub tag: T,
 }
