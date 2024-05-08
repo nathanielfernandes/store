@@ -23,7 +23,12 @@ async fn main() {
 
     app.new_namespace(
         String::from("nathan"),
-        std::env::var("WRITE_KEY").unwrap_or("soup".into()),
+        std::env::var("NATHAN_WRITE_KEY").unwrap_or("soup".into()),
+    )
+    .await;
+    app.new_namespace(
+        String::from("sarah"),
+        std::env::var("SARAH_WRITE_KEY").unwrap_or("rock".into()),
     )
     .await;
     app.new_namespace(
@@ -45,11 +50,11 @@ async fn main() {
         .route("/ws/:ns/:wp", get(handle_ws_write))
         .with_state(app);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3002")
         .await
         .expect("failed to bind to port");
 
-    println!("Listening on 3000");
+    println!("Listening on 3002");
 
     axum::serve(listener, router).await.expect("server failed");
 }
