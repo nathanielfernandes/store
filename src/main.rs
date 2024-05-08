@@ -7,6 +7,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use tower_http::cors::CorsLayer;
 
 use crate::{app::App, namespace::messages::export_types};
 
@@ -43,12 +44,14 @@ async fn main() {
     )
     .await;
 
+    let cors = CorsLayer::permissive();
     let router = Router::new()
         .route("/", get(root))
         .route("/read/:ns/:store", get(read_store))
         .route("/write/:ns/:wk/:store", post(write_store))
         .route("/ws/:ns", get(handle_ws_read))
         .route("/ws/:ns/:wp", get(handle_ws_write))
+        .layer(cors)
         .with_state(app);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3002")
