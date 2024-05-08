@@ -35,7 +35,7 @@ impl NamespaceInner {
 
             pool,
             stores: Cache::builder()
-                .time_to_idle(Duration::from_secs(3600))
+                .time_to_idle(Duration::from_secs(3600 * 12))
                 .build(),
         });
 
