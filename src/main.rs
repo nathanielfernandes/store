@@ -2,6 +2,7 @@
 
 use axum::{
     extract::{Path, State, WebSocketUpgrade},
+    http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
     Router,
@@ -66,7 +67,7 @@ async fn root() -> &'static str {
 async fn read_store(State(app): State<App>, Path((ns, store)): Path<(String, String)>) -> Response {
     match app.read_store(&ns, &store).await {
         Some(data) => data.into_response(),
-        None => "Store not found".into_response(),
+        None => StatusCode::NOT_FOUND.into_response(),
     }
 }
 
@@ -77,7 +78,12 @@ async fn write_store(
 ) -> Response {
     match app.write_store(&ns, &wk, &store, value).await {
         Ok(_) => "ok".into_response(),
-        Err(e) => e.into_response(),
+        Err(e) => match e {
+            "Invalid write key" => StatusCode::FORBIDDEN,
+            "Namespace not found" => StatusCode::NOT_FOUND,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+        .into_response(),
     }
 }
 
