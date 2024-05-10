@@ -38,6 +38,8 @@ async fn main() {
         String::from(""), // no write key
     )
     .await;
+    app.new_namespace(String::from("fetch-cache"), String::from("wk"))
+        .await;
     app.new_namespace(
         String::from("tictactoe"),
         String::from("x"), // no write key
